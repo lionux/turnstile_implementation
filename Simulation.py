@@ -34,8 +34,7 @@ def MSTPerFlow(input_graph, flows):
     print "FLOW MST LEN: "+str(len(flowMSTs))
     for f, flowG in flowMSTs.iteritems():
         for e in flowG.edges(data=True):
-            if random.choice([True, False]) == True:
-                flowG.edge[e[0]][e[1]]['weight'] = 2
+            flowG.edge[e[0]][e[1]]['weight'] = random.randint(1, 10)
         
         MST = nx.minimum_spanning_tree(flowG)
         flowMSTs[f] = placeTurnstiles(flowG, MST)

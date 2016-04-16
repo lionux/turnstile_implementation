@@ -1,5 +1,5 @@
 import networkx as nx
-
+import random
 
 def mergeGraphs(G1, G2):
     G = nx.Graph()
@@ -12,8 +12,8 @@ def mergeGraphs(G1, G2):
 #Takes a graph and MST, places turnstiles on edges in graph that aren't in MST
 def placeTurnstiles(G, MST):
     for e in G.edges_iter():
-        if e not in MST.edges_iter():
-            G[e[0]][e[1]]['turnstile'] = True
+        if e not in MST.edges():
+            G.edge[e[0]][e[1]]['turnstile'] = True
     return G
 
 def createSubGraphs(G, flows):
@@ -33,19 +33,26 @@ def MSTPerFlow(input_graph, flows):
 
     print "FLOW MST LEN: "+str(len(flowMSTs))
     for f, flowG in flowMSTs.iteritems():
+        for e in flowG.edges(data=True):
+            if random.choice([True, False]) == True:
+                flowG.edge[e[0]][e[1]]['weight'] = 2
+        
         MST = nx.minimum_spanning_tree(flowG)
         flowMSTs[f] = placeTurnstiles(flowG, MST)
+        #for e in flowMSTs[f].edges(data=True):
+        #    print str(f) + " "+str(e)
 
     tsCount = 0
     for f, flowG in flowMSTs.iteritems():
         for e in flowG.edges(data = True):
             if e[2]['turnstile'] == True:
-                G[e[0]][e[1]]['turnstile'] = True
-                tsCount = tsCount+1
+                if G.edge[e[0]][e[1]]['turnstile'] == False:
+                    G.edge[e[0]][e[1]]['turnstile'] = True
+                    tsCount = tsCount+1
 
     print "Turnstiles: "+str(tsCount)
-    for e in G.edges(data=True):
-        print "Edge ("+ str(e[0])+", " + str(e[1]) + ") has status "+  str(e[2])
+    #for e in G.edges(data=True):
+    #    print "Edge ("+ str(e[0])+", " + str(e[1]) + ") has status "+  str(e[2])
     
 #finds MST for every flow with edge weights adjusted for number of flows on that edge
 def weightedMSTPerFlow(input_graph, flows):
@@ -57,7 +64,7 @@ def weightedMSTPerFlow(input_graph, flows):
             e[2]['weight'] = len(e[2]['flows'])
             G[e[0]][e[1]]['weight'] = len(e[2]['flows'])
     for f in range(1, len(flowMSTs) + 1):
-        MST = nx.minimum_spanning_tree(flowMSTs[f])
+        MST = nx.minimum_spanning_tree(flowMSTs[f], weight="weight")
         flowMSTs[f] = placeTurnstiles(flowMSTs[f], MST)
         for e in flowMSTs[f].edges(data=True):
             if e[2]['turnstile'] == True:
@@ -71,13 +78,14 @@ def weightedMSTPerFlow(input_graph, flows):
     for f, flowG in flowMSTs.iteritems():
         for e in flowG.edges(data = True):
             if e[2]['turnstile'] == True:
-                G[e[0]][e[1]]['turnstile'] = True
-                tsCount = tsCount+1
+                if G.edge[e[0]][e[1]]['turnstile'] == False:
+                    G.edge[e[0]][e[1]]['turnstile'] = True
+                    tsCount = tsCount+1
 
     print "Printing for weightedMSTPerFlow:"
     print "Turnstiles: "+str(tsCount)
-    for e in G.edges(data=True):
-        print "Edge ("+ str(e[0])+", " + str(e[1]) + ") has status "+  str(e[2])
+    #for e in G.edges(data=True):
+    #    print "Edge ("+ str(e[0])+", " + str(e[1]) + ") has status "+  str(e[2])
 
     #for f, flowG in flowMSTs.iteritems():
     #    print "Flow number " + str(f) + " has edges "+ str(flowG.edges(data = True))
@@ -114,13 +122,13 @@ def main():
     #print "\n"
     #weightedMSTPerFlow(G, flows)
     #print "\n\n"
-    G1 = nx.fast_gnp_random_graph(5, .8, seed=None, directed=False)
+    G1 = nx.fast_gnp_random_graph(50, .8, seed=None, directed=False)
     for e in G1.edges(data=True):
         G1.edge[e[0]][e[1]]['flows'] = [1]
         G1.edge[e[0]][e[1]]['turnstile'] = False
         G1.edge[e[0]][e[1]]['weight'] = 1
 
-    G2 = nx.fast_gnp_random_graph(5, .8, seed=None, directed=False)
+    G2 = nx.fast_gnp_random_graph(50, .8, seed=None, directed=False)
     for e in G2.edges(data=True):
         G2.edge[e[0]][e[1]]['flows'] = [2]
         G2.edge[e[0]][e[1]]['turnstile'] = False

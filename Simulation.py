@@ -22,6 +22,7 @@ def MSTPerFlow(input_graph, flows):
     flowMSTs = createSubGraphs(G, flows)
     print "Printing for MSTPerFlow:"
 
+    print "FLOW MST LEN: "+str(len(flowMSTs))
     for f, flowG in flowMSTs.iteritems():
         MST = nx.minimum_spanning_tree(flowG)
         flowMSTs[f] = placeTurnstiles(flowG, MST)
@@ -38,6 +39,7 @@ def MSTPerFlow(input_graph, flows):
 def weightedMSTPerFlow(input_graph, flows):
     G = input_graph.copy()
     flowMSTs = createSubGraphs(G, flows)
+    print "FLOW MST LEN: "+str(len(flowMSTs))
     for f, flowG in flowMSTs.iteritems():
         for e in flowG.edges(data=True):
             e[2]['weight'] = len(e[2]['flows'])
@@ -45,11 +47,12 @@ def weightedMSTPerFlow(input_graph, flows):
     for f, flowG in flowMSTs.iteritems():
         MST = nx.minimum_spanning_tree(flowG)
         flowMSTs[f] = placeTurnstiles(flowG, MST)
-        for e in flowMSTs[f].edges(data=True):
+        for e in flowG.edges(data=True):
             if e[2]['turnstile'] == True:
                 for i in range(f, len(flowMSTs)):
-                    flowMSTs[i][e[0]][e[1]]['weight'] = flowMSTs[i][e[0]][e[1]]['weight'] + 1
-                    G[e[0]][e[1]]['weight'] = G[e[0]][e[1]]['weight'] + 1
+                    if e in flowMSTs[i].edges(data=True):
+                        flowMSTs[i][e[0]][e[1]]['weight'] = flowMSTs[i][e[0]][e[1]]['weight'] + 1
+                        G[e[0]][e[1]]['weight'] = G[e[0]][e[1]]['weight'] + 1
 
     for f, flowG in flowMSTs.iteritems():
         for e in flowG.edges(data = True):
@@ -63,17 +66,29 @@ def weightedMSTPerFlow(input_graph, flows):
     #    print "Flow number " + str(f) + " has edges "+ str(flowG.edges(data = True))
 
 def main():
-    flows = [1,2]
+    flows = [1,2,3,4]
     G = nx.Graph()
-    G.add_nodes_from([1,2,3,4,5,6])
-    G.add_edge(1, 2, weight=1, flows=[1, 2], turnstile = False)
-    G.add_edge(2, 3, weight=1, flows=[1], turnstile = False)
-    G.add_edge(2, 4, weight=1, flows=[2], turnstile = False)
-    G.add_edge(3, 5, weight=1, flows=[1], turnstile = False)
-    G.add_edge(4, 5, weight=1, flows=[2], turnstile = False)
-    G.add_edge(5, 6, weight=1, flows=[1, 2], turnstile = False)
-    G.add_edge(6, 1, weight=1, flows=[1, 2], turnstile = False)
-    
+    #G.add_nodes_from([1,2,3,4,5,6])
+    #G.add_edge(1, 2, weight=1, flows=[1, 2], turnstile = False)
+    #G.add_edge(2, 3, weight=1, flows=[1], turnstile = False)
+    #G.add_edge(2, 4, weight=1, flows=[2], turnstile = False)
+    #G.add_edge(3, 5, weight=1, flows=[1], turnstile = False)
+    #G.add_edge(4, 5, weight=1, flows=[2], turnstile = False)
+    #G.add_edge(5, 6, weight=1, flows=[1, 2], turnstile = False)
+    #G.add_edge(6, 1, weight=1, flows=[1, 2], turnstile = False)
+    G.add_nodes_from([1,2,3,4,5,6,7,8])
+    G.add_edge(1, 2, weight=1, flows=[1], turnstile=False)
+    G.add_edge(1, 3, weight=1, flows=[1], turnstile=False)
+    G.add_edge(2, 3, weight=1, flows=[1,2], turnstile=False)
+    G.add_edge(2, 4, weight=1, flows=[2], turnstile=False)
+    G.add_edge(3, 5, weight=1, flows=[2], turnstile=False)
+    G.add_edge(4, 5, weight=1, flows=[2,3], turnstile=False)
+    G.add_edge(4, 6, weight=1, flows=[3], turnstile=False)
+    G.add_edge(5, 7, weight=1, flows=[3], turnstile=False)
+    G.add_edge(6, 7, weight=1, flows=[3,4], turnstile=False)
+    G.add_edge(6, 8, weight=1, flows=[4], turnstile=False)
+    G.add_edge(7, 8, weight=1, flows=[4], turnstile=False)
+
     #print MST.nodes()
     #print G.edges(data=True)
     #for e in G.edges(data=True):

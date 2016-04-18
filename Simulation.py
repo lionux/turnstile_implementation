@@ -1,6 +1,7 @@
 import networkx as nx
 import random
 
+#merges two graphs together
 def mergeGraphs(G1, G2):
     G = nx.Graph()
     for e in G1.edges(data=True):
@@ -29,9 +30,9 @@ def createSubGraphs(G, flows):
 def MSTPerFlow(input_graph, flows):
     G = input_graph.copy()
     flowMSTs = createSubGraphs(G, flows)
-    print "Printing for MSTPerFlow:"
+    #print "Printing for MSTPerFlow:"
 
-    print "FLOW MST LEN: "+str(len(flowMSTs))
+    #print "FLOW MST LEN: "+str(len(flowMSTs))
     for f, flowG in flowMSTs.iteritems():
         for e in flowG.edges(data=True):
             flowG.edge[e[0]][e[1]]['weight'] = random.randint(1, 10)
@@ -48,16 +49,14 @@ def MSTPerFlow(input_graph, flows):
                 if G.edge[e[0]][e[1]]['turnstile'] == False:
                     G.edge[e[0]][e[1]]['turnstile'] = True
                     tsCount = tsCount+1
+    return tsCount
 
-    print "Turnstiles: "+str(tsCount)
-    #for e in G.edges(data=True):
-    #    print "Edge ("+ str(e[0])+", " + str(e[1]) + ") has status "+  str(e[2])
     
 #finds MST for every flow with edge weights adjusted for number of flows on that edge
 def weightedMSTPerFlow(input_graph, flows):
     G = input_graph.copy()
     flowMSTs = createSubGraphs(G, flows)
-    print "FLOW MST LEN: "+str(len(flowMSTs))
+    #print "FLOW MST LEN: "+str(len(flowMSTs))
     for f, flowG in flowMSTs.iteritems():
         for e in flowG.edges(data=True):
             e[2]['weight'] = len(e[2]['flows'])
@@ -67,7 +66,6 @@ def weightedMSTPerFlow(input_graph, flows):
         flowMSTs[f] = placeTurnstiles(flowMSTs[f], MST)
         for e in flowMSTs[f].edges(data=True):
             if e[2]['turnstile'] == True:
-                #print str(e[2])
                 for i in range(f, len(flowMSTs)+1):
                     if (e[0], e[1]) in flowMSTs[i].edges():
                         flowMSTs[i].edge[e[0]][e[1]]['weight'] = flowMSTs[i].edge[e[0]][e[1]]['weight'] + 1
@@ -80,65 +78,53 @@ def weightedMSTPerFlow(input_graph, flows):
                 if G.edge[e[0]][e[1]]['turnstile'] == False:
                     G.edge[e[0]][e[1]]['turnstile'] = True
                     tsCount = tsCount+1
-
-    print "Printing for weightedMSTPerFlow:"
-    print "Turnstiles: "+str(tsCount)
-    #for e in G.edges(data=True):
-    #    print "Edge ("+ str(e[0])+", " + str(e[1]) + ") has status "+  str(e[2])
-
-    #for f, flowG in flowMSTs.iteritems():
-    #    print "Flow number " + str(f) + " has edges "+ str(flowG.edges(data = True))
+    return tsCount
 
 def main():
-    flows = [1,2]
-    G = nx.Graph()
-    #G.add_nodes_from([1,2,3,4,5,6])
-    #G.add_edge(1, 2, weight=1, flows=[1, 2], turnstile = False)
-    #G.add_edge(2, 3, weight=1, flows=[1], turnstile = False)
-    #G.add_edge(2, 4, weight=1, flows=[2], turnstile = False)
-    #G.add_edge(3, 5, weight=1, flows=[1], turnstile = False)
-    #G.add_edge(4, 5, weight=1, flows=[2], turnstile = False)
-    #G.add_edge(5, 6, weight=1, flows=[1, 2], turnstile = False)
-    #G.add_edge(6, 1, weight=1, flows=[1, 2], turnstile = False)
-    G.add_nodes_from([1,2,3,4,5,6,7,8])
-    G.add_edge(1, 2, weight=1, flows=[1], turnstile=False)
-    G.add_edge(1, 3, weight=1, flows=[1], turnstile=False)
-    G.add_edge(2, 3, weight=1, flows=[1,2], turnstile=False)
-    G.add_edge(2, 4, weight=1, flows=[2], turnstile=False)
-    G.add_edge(3, 5, weight=1, flows=[2], turnstile=False)
-    G.add_edge(4, 5, weight=1, flows=[2,3], turnstile=False)
-    G.add_edge(4, 6, weight=1, flows=[3], turnstile=False)
-    G.add_edge(5, 7, weight=1, flows=[3], turnstile=False)
-    G.add_edge(6, 7, weight=1, flows=[3,4], turnstile=False)
-    G.add_edge(6, 8, weight=1, flows=[4], turnstile=False)
-    G.add_edge(7, 8, weight=1, flows=[4], turnstile=False)
+    ##############
+    # PARAMETERS #
+    ##############
 
-    #print MST.nodes()
-    #print G.edges(data=True)
-    #for e in G.edges(data=True):
-    #    print e[0]
-    #MSTPerFlow(G, flows)
-    #print "\n"
-    #weightedMSTPerFlow(G, flows)
-    #print "\n\n"
-    G1 = nx.fast_gnp_random_graph(50, .8, seed=None, directed=False)
-    for e in G1.edges(data=True):
-        G1.edge[e[0]][e[1]]['flows'] = [1]
-        G1.edge[e[0]][e[1]]['turnstile'] = False
-        G1.edge[e[0]][e[1]]['weight'] = 1
+    #Number of desired simulations
+    number_of_simulations = 100
 
-    G2 = nx.fast_gnp_random_graph(50, .8, seed=None, directed=False)
-    for e in G2.edges(data=True):
-        G2.edge[e[0]][e[1]]['flows'] = [2]
-        G2.edge[e[0]][e[1]]['turnstile'] = False
-        G2.edge[e[0]][e[1]]['weight'] = 1
+    #Graph parameters
+    number_of_vertices = 10
+    edge_probability = .5
+    flows = [1,2,3]
 
-    merged = mergeGraphs(G1, G2)
+    #Variables for averaging performance
+    edge_sum = 0
+    weighted_ts_sum = 0
+    unweighted_ts_sum = 0
+
+    for i in range(0, number_of_simulations):
+        G1 = nx.fast_gnp_random_graph(number_of_vertices, edge_probability, seed=None, directed=False)
+        for e in G1.edges(data=True):
+            G1.edge[e[0]][e[1]]['flows'] = [1]
+            G1.edge[e[0]][e[1]]['turnstile'] = False
+            G1.edge[e[0]][e[1]]['weight'] = 1
+
+        G2 = nx.fast_gnp_random_graph(number_of_vertices, edge_probability, seed=None, directed=False)
+        for e in G2.edges(data=True):
+            G2.edge[e[0]][e[1]]['flows'] = [2]
+            G2.edge[e[0]][e[1]]['turnstile'] = False
+            G2.edge[e[0]][e[1]]['weight'] = 1
+
+        #G3 = nx.fast_gnp_random_graph(number_of_vertices, edge_probability, seed=None, directed=False)
+        #for e in G3.edges(data=True):
+        #    G3.edge[e[0]][e[1]]['flows'] = [3]
+        #    G3.edge[e[0]][e[1]]['turnstile'] = False
+        #    G3.edge[e[0]][e[1]]['weight'] = 1
+
+        merged = mergeGraphs(G1, G2)
+        #merged = mergeGraphs(merged, G3)
     
-    #for e in merged.edges(data=True):
-    #    print str(e)
-    MSTPerFlow(merged, flows)
-    print "\n"
-    weightedMSTPerFlow(merged, flows)
+        unweighted_ts_sum += MSTPerFlow(merged, flows)
+        weighted_ts_sum += weightedMSTPerFlow(merged, flows)
+        edge_sum += len(merged.edges())
+
+    #with open("simResults3Flows10Nodes.txt", "a") as f:
+    print "Avg Number of Edges: "+str(edge_sum/number_of_simulations)+", Avg Number of TS Unweighted: "+str(unweighted_ts_sum/number_of_simulations) +", Avg Number of TS Weighted: "+str(weighted_ts_sum/number_of_simulations)
 
 if __name__ == '__main__':main()
